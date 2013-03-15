@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="automatically">Start at boot</string>
+    <string name="endis3gdata">Auto Data ?</string>
+    <string name="endis3g">Auto 3g ?</string>
+    <string name="sucopy">Enable it on ICS ?*</string>
+    <string name="airplane">Auto Air Plane mode ?</string>
+    <string name="app_name">AirPlaneOnWake</string>
+    <string name="why">On ICS, enabling/disabling 3g is not possible if the app is not in the system. With this, the app copies itself to the /system/app folder and autodelete from the /data/app one. Before uninstall the app, remember to switch off the feature!</string>
+
+</resources>

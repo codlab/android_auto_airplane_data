@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+	<string name="gotomarket">Buy the full version</string>
+    <string name="geteverything">Get the full version</string>
+    <string name="automatically">Start at boot</string>
+    <string name="endis3gdata">Auto Data ?</string>
+    <string name="endis3g">Auto 3g ?</string>
+    <string name="sucopy">Enable it on ICS ?*</string>
+    <string name="airplane">Auto AirPlane ?</string>
+    <string name="app_name">AirPlaneOnWake Free</string>
+    <string name="why"></string>
+
+</resources>
