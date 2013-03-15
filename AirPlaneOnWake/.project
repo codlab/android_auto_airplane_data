@@ -3,6 +3,7 @@
 	<name>AirPlaneOnWake</name>
 	<comment></comment>
 	<projects>
+		<project>AirPlaneOnWakeLibraryActivity</project>
 	</projects>
 	<buildSpec>
 		<buildCommand>

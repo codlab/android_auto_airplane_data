@@ -37,12 +37,12 @@ public class CopyProgram {
 		return "su";
 	}
 
-	private String getRemountWrite(String device){
-		return "mount -o remount,rw -t yaffs2 "+device+" /system";
+	private String getRemountWrite(){
+		return "mount -o remount,rw /system";
 	}
 
-	private String getRemountRead(String device){
-		return "mount -o remount,ro -t yaffs2 "+device+" /system";
+	private String getRemountRead(){
+		return "mount -o remount,ro /system";
 	}
 
 	private String getMount(){
@@ -52,7 +52,7 @@ public class CopyProgram {
 	public boolean isMask(int val, int mask){
 		return (val & mask) == mask;
 	}
-	
+
 	public String executeSuMount(){
 
 		CommandResult r = cmd.su.runWaitFor("mount");
@@ -72,13 +72,13 @@ public class CopyProgram {
 		}
 		return device;
 	}
-	
+
 	public String getApplicationPathName(){
 		CommandResult sapk = cmd.su.runWaitFor("ls /data/app/eu.codlab.airplane*");
 		return sapk.exit_value == 0 && sapk.stdout != null && sapk.stdout.indexOf("eu.codlab") >=0 ?
-				 sapk.stdout.replace(" ", "") : null;
+				sapk.stdout.replace(" ", "") : null;
 	}
-	
+
 	public String getApplicationPathNameOrDefault(){
 		String ret =  getApplicationPathName();
 		return ret != null ? ret : CopyProgram.APKDEFAULT;
@@ -91,19 +91,15 @@ public class CopyProgram {
 			}
 			String apk = getApplicationPathName();
 			if(apk != null){
-				String device = executeSuMount();
-				if(device != null){
-					if(cmd.su.runWaitFor(getRemountWrite(device)).success() != true)
-						return this.APK_SYS_COULDNOTCREATE;
-					//CommandResult  r = cmd.su.runWaitFor("ls /data/app/eu.codlab.airplane*");
-					cmd.su.runWaitFor("cat "+apk+" > /system/app/"+APKNAME+".apk");
-					//cmd.su.runWaitFor("rm "+apk);
-					cmd.su.runWaitFor(getRemountRead(device));
-					return this.APK_SYS_SUCCESS;
-				}else{
+				if(cmd.su.runWaitFor(getRemountWrite()).success() != true)
 					return this.APK_SYS_COULDNOTCREATE;
-				}
-
+				//CommandResult  r = cmd.su.runWaitFor("ls /data/app/eu.codlab.airplane*");
+				cmd.su.runWaitFor("cat "+apk+" > /system/app/"+APKNAME+".apk");
+				cmd.su.runWaitFor("chmod 733 /system/app/"+APKNAME+".apk");
+				cmd.su.runWaitFor("rm "+apk);
+				cmd.su.runWaitFor("rm /data/dalvik-cache/*eu.codlab.airplane*");
+				cmd.su.runWaitFor(getRemountRead());
+				return this.APK_SYS_SUCCESS;
 			}
 			return 	APK_DOESNOTEXIST;
 		}
@@ -120,18 +116,12 @@ public class CopyProgram {
 	public int copyProgramFromSys(){
 		if(cmd.canSU()){
 			if(existProgramSys()){
-				String device = executeSuMount();
-				if(device != null){
-					if(cmd.su.runWaitFor(getRemountWrite(device)).success() != true)
-						return this.APK_SYS_COULDNOTDELETE;
-					cmd.su.runWaitFor("cat /system/app/"+APKNAME+".apk > "+this.getApplicationPathNameOrDefault());
-					cmd.su.runWaitFor("rm /system/app/"+APKNAME+".apk");
-					cmd.su.runWaitFor(getRemountRead(device));
-					return this.APK_SYS_SUCCESS;
-				}else{
+				if(cmd.su.runWaitFor(getRemountWrite()).success() != true)
 					return this.APK_SYS_COULDNOTDELETE;
-				}
-
+				cmd.su.runWaitFor("cat /system/app/"+APKNAME+".apk > "+this.getApplicationPathNameOrDefault());
+				cmd.su.runWaitFor("rm /system/app/"+APKNAME+".apk");
+				cmd.su.runWaitFor(getRemountRead());
+				return this.APK_SYS_SUCCESS;
 			}
 			return 	APK_SYS_DOESNOTEXIST;
 		}
