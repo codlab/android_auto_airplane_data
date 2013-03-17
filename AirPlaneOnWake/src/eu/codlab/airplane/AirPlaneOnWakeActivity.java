@@ -1,10 +1,18 @@
 package eu.codlab.airplane;
 
+import java.net.URI;
+import java.net.URISyntaxException;
+
+import android.annotation.TargetApi;
 import android.app.Activity;
 import android.content.BroadcastReceiver;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.OnSharedPreferenceChangeListener;
+import android.net.Uri;
+import android.nfc.NdefMessage;
+import android.nfc.NdefRecord;
+import android.nfc.NfcAdapter;
 import android.os.Build;
 import android.os.Bundle;
 import android.provider.Settings;
@@ -14,6 +22,9 @@ import android.widget.CompoundButton.OnCheckedChangeListener;
 import android.widget.ToggleButton;
 
 public class AirPlaneOnWakeActivity extends Activity implements OnSharedPreferenceChangeListener {
+	private NfcAdapter mAdapter;
+	private NdefMessage mMessage;
+
 	private SharedPreferences state;
 	static boolean isEnabled;
 	static BroadcastReceiver mReceiver;
@@ -36,6 +47,16 @@ public class AirPlaneOnWakeActivity extends Activity implements OnSharedPreferen
 	}
 	 */
 
+	@TargetApi(Build.VERSION_CODES.GINGERBREAD_MR1)
+	public void startNFC(){
+		mAdapter = NfcAdapter.getDefaultAdapter(this);
+		try {
+			mMessage = new NdefMessage(
+					new NdefRecord[] { AppNfc.createUri(Uri.parse("https://play.google.com/store/apps/details?id=eu.codlab.airplane"))});
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
 	/** Called when the activity is first created. */
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
@@ -50,6 +71,10 @@ public class AirPlaneOnWakeActivity extends Activity implements OnSharedPreferen
 		 */
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.main);
+
+		if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.GINGERBREAD_MR1){
+			startNFC();
+		}
 		state = this.getSharedPreferences("AIRPLANEMODEAPP",0);
 		state.registerOnSharedPreferenceChangeListener(this);
 		Intent intent = new Intent(this, AirPlaneService.class);
@@ -159,7 +184,32 @@ public class AirPlaneOnWakeActivity extends Activity implements OnSharedPreferen
 		});
 	}
 
+	@TargetApi(Build.VERSION_CODES.GINGERBREAD_MR1)
+	private void start(){
+		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.GINGERBREAD_MR1 && 
+				mAdapter != null) mAdapter.enableForegroundNdefPush(this, mMessage);
+	}
 
+	@TargetApi(Build.VERSION_CODES.GINGERBREAD_MR1)
+	private void stop(){
+		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.GINGERBREAD_MR1 && 
+				mAdapter != null) mAdapter.disableForegroundNdefPush(this);
+	}
+
+	@Override
+	public void onResume(){
+		super.onResume();
+		if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.GINGERBREAD_MR1)
+			start();
+	}
+
+	@Override
+	public void onPause(){
+		if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.GINGERBREAD_MR1)
+			stop();
+		super.onPause();
+
+	}
 
 	@Override
 	public void onDestroy(){

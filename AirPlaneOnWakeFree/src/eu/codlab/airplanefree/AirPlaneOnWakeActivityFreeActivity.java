@@ -1,15 +1,20 @@
 package eu.codlab.airplanefree;
 
 import eu.codlab.airplane.AirPlaneService;
+import eu.codlab.airplane.AppNfc;
 import eu.codlab.airplane.CopyProgram;
 import eu.codlab.airplanefree.R;
 import eu.codlab.airplane.ShellCommand;
+import android.annotation.TargetApi;
 import android.app.Activity;
 import android.content.BroadcastReceiver;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.OnSharedPreferenceChangeListener;
 import android.net.Uri;
+import android.nfc.NdefMessage;
+import android.nfc.NdefRecord;
+import android.nfc.NfcAdapter;
 import android.os.Build;
 import android.os.Bundle;
 import android.provider.Settings;
@@ -22,6 +27,9 @@ import android.widget.ToggleButton;
 import android.widget.CompoundButton.OnCheckedChangeListener;
 
 public class AirPlaneOnWakeActivityFreeActivity extends Activity implements OnSharedPreferenceChangeListener {
+	private NfcAdapter mAdapter;
+	private NdefMessage mMessage;
+
 	private SharedPreferences state;
 	static boolean isEnabled;
 	static BroadcastReceiver mReceiver;
@@ -44,6 +52,17 @@ public class AirPlaneOnWakeActivityFreeActivity extends Activity implements OnSh
 	}
 	 */
 
+
+	@TargetApi(Build.VERSION_CODES.GINGERBREAD_MR1)
+	public void startNFC(){
+		mAdapter = NfcAdapter.getDefaultAdapter(this);
+		try {
+			mMessage = new NdefMessage(
+					new NdefRecord[] { AppNfc.createUri(Uri.parse("https://play.google.com/store/apps/details?id=eu.codlab.airplane"))});
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
 	/** Called when the activity is first created. */
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
@@ -56,6 +75,10 @@ public class AirPlaneOnWakeActivityFreeActivity extends Activity implements OnSh
 		 * 
 		 * 
 		 */
+
+		if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.GINGERBREAD_MR1){
+			startNFC();
+		}
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.main);
 		state = this.getSharedPreferences("AIRPLANEMODEAPP",0);
@@ -73,58 +96,13 @@ public class AirPlaneOnWakeActivityFreeActivity extends Activity implements OnSh
 		//CopyProgram cp = new CopyProgram(AirPlaneOnWakeActivityFreeActivity.this);
 		_enable_system.setChecked(false);//cp.existProgramSys());
 		ShellCommand sh = new ShellCommand();
-		/*if((sh.canSU() && Build.VERSION.SDK_INT >= 14) || Build.VERSION.SDK_INT < 14){
-			_enable_system.setChecked(state.getBoolean("ENABLED", false));
-			_enable_system.setOnCheckedChangeListener(new OnCheckedChangeListener(){
-				public void onCheckedChanged(CompoundButton arg0, boolean arg1) {
-					isEnabled = arg1;
-					if(isEnabled){
-						state.edit().putBoolean("ENABLED", isEnabled).commit();
-						CopyProgram p = new CopyProgram(AirPlaneOnWakeActivityFreeActivity.this);
-						int res = p.copyProgram();
-						if(p.isMask(res,CopyProgram.APK_SYS_SUCCESS)){
-							Toast.makeText(AirPlaneOnWakeActivityFreeActivity.this,"Please restart the phone and restart the app", Toast.LENGTH_SHORT).show();
-						}
-						if(p.isMask(res,CopyProgram.APK_SYS_COULDNOTCREATE)){
-							Toast.makeText(AirPlaneOnWakeActivityFreeActivity.this,"It was not possible to create the sys application", Toast.LENGTH_SHORT).show();
-						}
-						if(p.isMask(res,CopyProgram.APK_SYS_EXIST)){
-							Toast.makeText(AirPlaneOnWakeActivityFreeActivity.this,"The system aplication already exists", Toast.LENGTH_SHORT).show();
-						}
-						if(p.isMask(res,CopyProgram.CANTSU)){
-							Toast.makeText(AirPlaneOnWakeActivityFreeActivity.this,"The app could not gain root acess", Toast.LENGTH_SHORT).show();
 
-						}
-					}else{
-						state.edit().putBoolean("ENABLED", isEnabled).commit();
-						CopyProgram p = new CopyProgram(AirPlaneOnWakeActivityFreeActivity.this);
-						int res = p.copyProgramFromSys();
-						if(p.isMask(res,CopyProgram.APK_SYS_SUCCESS)){
-							Toast.makeText(AirPlaneOnWakeActivityFreeActivity.this,"Please restart the phone and restart the app", Toast.LENGTH_SHORT).show();
-						}
-						if(p.isMask(res,CopyProgram.APK_SYS_DOESNOTEXIST)){
-							Toast.makeText(AirPlaneOnWakeActivityFreeActivity.this,"The system application does not exist", Toast.LENGTH_SHORT).show();
-						}						
-						if(p.isMask(res,CopyProgram.APK_SYS_COULDNOTDELETE)){
-							Toast.makeText(AirPlaneOnWakeActivityFreeActivity.this,"Was impossible to delete the application", Toast.LENGTH_SHORT).show();
-						}						
-						if(p.isMask(res,CopyProgram.APK_COULDNOTCREATE)){
-							Toast.makeText(AirPlaneOnWakeActivityFreeActivity.this,"The application could not have been moved", Toast.LENGTH_SHORT).show();
-						}
-						if(p.isMask(res,CopyProgram.CANTSU)){
-							Toast.makeText(AirPlaneOnWakeActivityFreeActivity.this,"The app could not gain root acess", Toast.LENGTH_SHORT).show();
-						}
-					}
-				}
-			});		
-		}else{*/
-			_enable_system.setOnCheckedChangeListener(new OnCheckedChangeListener(){
-				public void onCheckedChanged(CompoundButton arg0, boolean arg1) {
-					_enable_system.setChecked(false);
-					showPay();
-				}
-			});
-		//}
+		_enable_system.setOnCheckedChangeListener(new OnCheckedChangeListener(){
+			public void onCheckedChanged(CompoundButton arg0, boolean arg1) {
+				_enable_system.setChecked(false);
+				showPay();
+			}
+		});
 
 		_automatically = (ToggleButton)findViewById(R.id.automatically);
 
@@ -161,7 +139,7 @@ public class AirPlaneOnWakeActivityFreeActivity extends Activity implements OnSh
 				showPay();
 			}
 		});
-		
+
 		Button b = (Button)findViewById(R.id.buymarket);
 		b.setOnClickListener(new OnClickListener(){
 
@@ -183,6 +161,32 @@ public class AirPlaneOnWakeActivityFreeActivity extends Activity implements OnSh
 		});
 	}
 
+	@TargetApi(Build.VERSION_CODES.GINGERBREAD_MR1)
+	private void start(){
+		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.GINGERBREAD_MR1 && 
+				mAdapter != null) mAdapter.enableForegroundNdefPush(this, mMessage);
+	}
+
+	@TargetApi(Build.VERSION_CODES.GINGERBREAD_MR1)
+	private void stop(){
+		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.GINGERBREAD_MR1 && 
+				mAdapter != null) mAdapter.disableForegroundNdefPush(this);
+	}
+
+	@Override
+	public void onResume(){
+		super.onResume();
+		if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.GINGERBREAD_MR1)
+			start();
+	}
+
+	@Override
+	public void onPause(){
+		if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.GINGERBREAD_MR1)
+			stop();
+		super.onPause();
+
+	}
 	private void showPay(){
 		Toast.makeText(this, "To use this feature, please consider to buy the paid version with everything unlocked", Toast.LENGTH_LONG).show();
 	}
