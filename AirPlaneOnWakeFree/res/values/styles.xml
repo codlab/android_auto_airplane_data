@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <style name="ActionBarDark" parent="Widget.Sherlock.Light.ActionBar.Solid.Inverse">
+        <item name="android:background">#2E2E2E</item>
+    </style>
+
+    
+    <style name="Light.ActionBarDark" parent="Theme.Sherlock.Light.DarkActionBar">
+        <item name="android:actionBarStyle">@style/ActionBarDark</item>
+    </style>
+</resources>

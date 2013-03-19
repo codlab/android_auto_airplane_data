@@ -3,6 +3,8 @@ package eu.codlab.airplane;
 import java.net.URI;
 import java.net.URISyntaxException;
 
+import com.actionbarsherlock.app.SherlockActivity;
+
 import android.annotation.TargetApi;
 import android.app.Activity;
 import android.content.BroadcastReceiver;
@@ -21,7 +23,7 @@ import android.widget.Toast;
 import android.widget.CompoundButton.OnCheckedChangeListener;
 import android.widget.ToggleButton;
 
-public class AirPlaneOnWakeActivity extends Activity implements OnSharedPreferenceChangeListener {
+public class AirPlaneOnWakeActivity extends SherlockActivity implements OnSharedPreferenceChangeListener {
 	private NfcAdapter mAdapter;
 	private NdefMessage mMessage;
 
@@ -77,6 +79,11 @@ public class AirPlaneOnWakeActivity extends Activity implements OnSharedPreferen
 		}
 		state = this.getSharedPreferences("AIRPLANEMODEAPP",0);
 		state.registerOnSharedPreferenceChangeListener(this);
+
+		if(state.getBoolean("AUTO", false)){
+			state.edit().putBoolean("AUTO", true).commit();
+		}
+
 		Intent intent = new Intent(this, AirPlaneService.class);
 		startService(intent);
 
@@ -85,71 +92,47 @@ public class AirPlaneOnWakeActivity extends Activity implements OnSharedPreferen
 				Settings.System.AIRPLANE_MODE_ON, 0) == 1;
 
 		_enable_system = (ToggleButton)findViewById(R.id.sucopy);
-
-
-		CopyProgram cp = new CopyProgram(AirPlaneOnWakeActivity.this);
-		_enable_system.setChecked(cp.existProgramSys());
-		ShellCommand sh = new ShellCommand();
-		if((sh.canSU() && Build.VERSION.SDK_INT >= 14) || Build.VERSION.SDK_INT < 14){
-			_enable_system.setChecked(state.getBoolean("ENABLED", false));
-			_enable_system.setOnCheckedChangeListener(new OnCheckedChangeListener(){
-				public void onCheckedChanged(CompoundButton arg0, boolean arg1) {
-					isEnabled = arg1;
-					if(isEnabled){
-						state.edit().putBoolean("ENABLED", isEnabled).commit();
-						CopyProgram p = new CopyProgram(AirPlaneOnWakeActivity.this);
-						int res = p.copyProgram();
-						if(p.isMask(res,CopyProgram.APK_SYS_SUCCESS)){
-							Toast.makeText(AirPlaneOnWakeActivity.this,"Please restart the phone and restart the app", Toast.LENGTH_SHORT).show();
-						}
-						if(p.isMask(res,CopyProgram.APK_SYS_COULDNOTCREATE)){
-							Toast.makeText(AirPlaneOnWakeActivity.this,"It was not possible to create the sys application", Toast.LENGTH_SHORT).show();
-						}
-						if(p.isMask(res,CopyProgram.APK_SYS_EXIST)){
-							Toast.makeText(AirPlaneOnWakeActivity.this,"The system aplication already exists", Toast.LENGTH_SHORT).show();
-						}
-						if(p.isMask(res,CopyProgram.CANTSU)){
-							Toast.makeText(AirPlaneOnWakeActivity.this,"The app could not gain root acess", Toast.LENGTH_SHORT).show();
-
-						}
-					}else{
-						state.edit().putBoolean("ENABLED", isEnabled).commit();
-						CopyProgram p = new CopyProgram(AirPlaneOnWakeActivity.this);
-						int res = p.copyProgramFromSys();
-						if(p.isMask(res,CopyProgram.APK_SYS_SUCCESS)){
-							Toast.makeText(AirPlaneOnWakeActivity.this,"Please restart the phone and restart the app", Toast.LENGTH_SHORT).show();
-						}
-						if(p.isMask(res,CopyProgram.APK_SYS_DOESNOTEXIST)){
-							Toast.makeText(AirPlaneOnWakeActivity.this,"The system application does not exist", Toast.LENGTH_SHORT).show();
-						}						
-						if(p.isMask(res,CopyProgram.APK_SYS_COULDNOTDELETE)){
-							Toast.makeText(AirPlaneOnWakeActivity.this,"Was impossible to delete the application", Toast.LENGTH_SHORT).show();
-						}						
-						if(p.isMask(res,CopyProgram.APK_COULDNOTCREATE)){
-							Toast.makeText(AirPlaneOnWakeActivity.this,"The application could not have been moved", Toast.LENGTH_SHORT).show();
-						}
-						if(p.isMask(res,CopyProgram.CANTSU)){
-							Toast.makeText(AirPlaneOnWakeActivity.this,"The app could not gain root acess", Toast.LENGTH_SHORT).show();
-						}
-					}
-				}
-			});		
-		}else{
-			_enable_system.setOnCheckedChangeListener(new OnCheckedChangeListener(){
-				public void onCheckedChanged(CompoundButton arg0, boolean arg1) {
-					_enable_system.setChecked(false);
-				}
-			});
-			Toast.makeText(this,"You can't root, so with ICS you'll encounter problems. Don't care if you have froyo for example", Toast.LENGTH_SHORT).show();
-		}
-
-		_automatically = (ToggleButton)findViewById(R.id.automatically);
-
-		_automatically.setChecked(state.getBoolean("AUTO", false));
-		_automatically.setOnCheckedChangeListener(new OnCheckedChangeListener(){
+		_enable_system.setChecked(state.getBoolean("ENABLED", false));
+		_enable_system.setOnCheckedChangeListener(new OnCheckedChangeListener(){
 			public void onCheckedChanged(CompoundButton arg0, boolean arg1) {
 				isEnabled = arg1;
-				state.edit().putBoolean("AUTO", isEnabled).commit();
+				if(isEnabled){
+					state.edit().putBoolean("ENABLED", isEnabled).commit();
+					CopyProgram p = new CopyProgram(AirPlaneOnWakeActivity.this);
+					int res = p.copyProgram();
+					if(p.isMask(res,CopyProgram.APK_SYS_SUCCESS)){
+						Toast.makeText(AirPlaneOnWakeActivity.this,"Please restart the phone and restart the app", Toast.LENGTH_SHORT).show();
+					}
+					if(p.isMask(res,CopyProgram.APK_SYS_COULDNOTCREATE)){
+						Toast.makeText(AirPlaneOnWakeActivity.this,"It was not possible to create the sys application", Toast.LENGTH_SHORT).show();
+					}
+					if(p.isMask(res,CopyProgram.APK_SYS_EXIST)){
+						Toast.makeText(AirPlaneOnWakeActivity.this,"The system aplication already exists", Toast.LENGTH_SHORT).show();
+					}
+					if(p.isMask(res,CopyProgram.CANTSU)){
+						Toast.makeText(AirPlaneOnWakeActivity.this,"The app could not gain root acess", Toast.LENGTH_SHORT).show();
+
+					}
+				}else{
+					state.edit().putBoolean("ENABLED", isEnabled).commit();
+					CopyProgram p = new CopyProgram(AirPlaneOnWakeActivity.this);
+					int res = p.copyProgramFromSys();
+					if(p.isMask(res,CopyProgram.APK_SYS_SUCCESS)){
+						Toast.makeText(AirPlaneOnWakeActivity.this,"Please restart the phone and restart the app", Toast.LENGTH_SHORT).show();
+					}
+					if(p.isMask(res,CopyProgram.APK_SYS_DOESNOTEXIST)){
+						Toast.makeText(AirPlaneOnWakeActivity.this,"The system application does not exist", Toast.LENGTH_SHORT).show();
+					}						
+					if(p.isMask(res,CopyProgram.APK_SYS_COULDNOTDELETE)){
+						Toast.makeText(AirPlaneOnWakeActivity.this,"Was impossible to delete the application", Toast.LENGTH_SHORT).show();
+					}						
+					if(p.isMask(res,CopyProgram.APK_COULDNOTCREATE)){
+						Toast.makeText(AirPlaneOnWakeActivity.this,"The application could not have been moved", Toast.LENGTH_SHORT).show();
+					}
+					if(p.isMask(res,CopyProgram.CANTSU)){
+						Toast.makeText(AirPlaneOnWakeActivity.this,"The app could not gain root acess", Toast.LENGTH_SHORT).show();
+					}
+				}
 			}
 		});
 

@@ -1,5 +1,7 @@
 package eu.codlab.airplanefree;
 
+import com.actionbarsherlock.app.SherlockActivity;
+
 import eu.codlab.airplane.AirPlaneService;
 import eu.codlab.airplane.AppNfc;
 import eu.codlab.airplane.CopyProgram;
@@ -26,7 +28,7 @@ import android.widget.Toast;
 import android.widget.ToggleButton;
 import android.widget.CompoundButton.OnCheckedChangeListener;
 
-public class AirPlaneOnWakeActivityFreeActivity extends Activity implements OnSharedPreferenceChangeListener {
+public class AirPlaneOnWakeActivityFreeActivity extends SherlockActivity implements OnSharedPreferenceChangeListener {
 	private NfcAdapter mAdapter;
 	private NdefMessage mMessage;
 

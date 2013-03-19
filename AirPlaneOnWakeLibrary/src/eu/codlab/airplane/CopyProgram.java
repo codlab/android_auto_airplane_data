@@ -118,7 +118,7 @@ public class CopyProgram {
 			if(existProgramSys()){
 				if(cmd.su.runWaitFor(getRemountWrite()).success() != true)
 					return this.APK_SYS_COULDNOTDELETE;
-				cmd.su.runWaitFor("cat /system/app/"+APKNAME+".apk > "+this.getApplicationPathNameOrDefault());
+				cmd.su.runWaitFor("cat /system/app/"+APKNAME+".apk > /data/app/"+this.getApplicationPathNameOrDefault());
 				cmd.su.runWaitFor("rm /system/app/"+APKNAME+".apk");
 				cmd.su.runWaitFor(getRemountRead());
 				return this.APK_SYS_SUCCESS;
